@@ -4,4 +4,7 @@ start:
 	PHP_CLI_SERVER_WORKERS=5 php -S 0.0.0.0:$(PORT) -t public
 
 lint:
-	vendor/bin/phpcs --standard=PSR12 public/index.php
+	XDEBUG_MODE=off vendor/bin/phpcs --standard=PSR12 public/index.php
+
+setup:
+	composer install
