@@ -4,4 +4,4 @@
 # Hexlet Project 3
 
 ## Deploy Link:
-[My Render App](https://your-app.onrender.com)
+[Render App](https://your-app.onrender.com)
