@@ -3,15 +3,19 @@ name: PHP CI
 on: [push, pull_request]
 
 jobs:
-  phpcs:
+  build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
-      - name: Set up PHP
+
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+
       - name: Install dependencies
         run: composer install
-      - name: Run PHPCS
-        run: vendor/bin/phpcs --standard=PSR12 public/index.php
+
+      - name: Run linter
+        run: make lint
