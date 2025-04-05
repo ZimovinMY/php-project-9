@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Hexlet\Code\Controller;
 
-use Hexlet\Code\Repository\UrlRepositoryInterface;
+use Hexlet\Code\ReadModel\UrlFetcher;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Http\Response;
 use Slim\Http\ServerRequest;
@@ -15,7 +15,7 @@ use Twig\Error\SyntaxError;
 
 class ListUrlsController
 {
-    public function __construct(private Twig $twig, private UrlRepositoryInterface $repository)
+    public function __construct(private Twig $twig, private UrlFetcher $fetcher)
     {
     }
 
@@ -27,7 +27,7 @@ class ListUrlsController
     public function __invoke(ServerRequest $request, Response $response): ResponseInterface
     {
         $data = [
-            'urls' => $this->repository->get(),
+            'urls' => $this->fetcher->getAllDetail(),
         ];
 
         return $this->twig->render($response, 'app/urls/list.html.twig', $data);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hexlet\Code\Controller;
 
+use Hexlet\Code\Repository\UrlCheckRepositoryInterface;
 use Hexlet\Code\Repository\UrlRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Flash\Messages;
@@ -19,7 +20,8 @@ class ShowUrlsController
     public function __construct(
         private Twig $twig,
         private Messages $flash,
-        private UrlRepositoryInterface $repository
+        private UrlRepositoryInterface $urlRepository,
+        private UrlCheckRepositoryInterface $urlCheckRepository
     ) {
     }
 
@@ -30,12 +32,15 @@ class ShowUrlsController
      */
     public function __invoke(ServerRequest $request, Response $response, array $args): ResponseInterface
     {
-        if (!$url = $this->repository->getOne($args['id'])) {
+        if (!$url = $this->urlRepository->getOne($args['id'])) {
             return $response->withStatus(404)->write('Page not found');
         }
 
+        $checks = $this->urlCheckRepository->get((string) $url['id']);
+
         $data = [
             'url'     => $url,
+            'checks'  => $checks,
             'flashes' => $this->flash->getMessages(),
         ];
 
