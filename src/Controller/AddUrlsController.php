@@ -69,6 +69,6 @@ class AddUrlsController
             'flashes' => $this->flash->getMessages(),
         ];
 
-        return $this->twig->render($response->withStatus(422), 'app/home.html.twig', $params);
+        return $this->twig->render($response->withStatus(403), 'app/home.html.twig', $params);
     }
 }

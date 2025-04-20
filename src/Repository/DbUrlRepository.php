@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hexlet\Code\Repository;
 
+use Hexlet\Code\Exception\UrlNotFoundException;
 use PDO;
 
 class DbUrlRepository implements UrlRepositoryInterface
@@ -27,6 +28,9 @@ class DbUrlRepository implements UrlRepositoryInterface
         return $this->pdoConnection->lastInsertId('urls_id_seq');
     }
 
+    /**
+     * @throws UrlNotFoundException
+     */
     public function getOne(string $id): array
     {
         $sql = 'SELECT * FROM urls WHERE id = :id';
@@ -34,10 +38,10 @@ class DbUrlRepository implements UrlRepositoryInterface
         $stmt = $this->pdoConnection->prepare($sql);
         $stmt->bindValue(':id', $id);
         $stmt->execute();
-
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_shift($result);
+        if (!$result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            throw new UrlNotFoundException();
+        }
+        return $result;
     }
 
     public function get(): array
@@ -58,8 +62,6 @@ class DbUrlRepository implements UrlRepositoryInterface
         $stmt->bindValue(':name', $name);
         $stmt->execute();
 
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_shift($result);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 }

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Hexlet\Code\Controller;
 
+use Hexlet\Code\Exception\UrlNotFoundException;
 use Hexlet\Code\Repository\UrlCheckRepositoryInterface;
 use Hexlet\Code\Repository\UrlRepositoryInterface;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Flash\Messages;
 use Slim\Http\Response;
@@ -15,7 +17,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class ShowUrlsController
+class ShowUrlController
 {
     public function __construct(
         private Twig $twig,
@@ -32,18 +34,21 @@ class ShowUrlsController
      */
     public function __invoke(ServerRequest $request, Response $response, array $args): ResponseInterface
     {
-        if (!$url = $this->urlRepository->getOne($args['id'])) {
-            return $response->withStatus(404)->write('Page not found');
+        try {
+            $url = $this->urlRepository->getOne($args['id']);
+            $checks = $this->urlCheckRepository->get((string) $url['id']);
+
+            $data = [
+                'url'     => $url,
+                'checks'  => $checks,
+                'flashes' => $this->flash->getMessages(),
+            ];
+
+            return $this->twig->render($response, 'app/urls/show.html.twig', $data);
+        } catch (UrlNotFoundException) {
+            return $this->twig->render($response->withStatus(404), 'app/404.html.twig');
+        } catch (Exception) {
+            return $this->twig->render($response->withStatus(500), 'app/500.html.twig');
         }
-
-        $checks = $this->urlCheckRepository->get((string) $url['id']);
-
-        $data = [
-            'url'     => $url,
-            'checks'  => $checks,
-            'flashes' => $this->flash->getMessages(),
-        ];
-
-        return $this->twig->render($response, 'app/urls/show.html.twig', $data);
     }
 }

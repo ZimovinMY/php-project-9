@@ -6,7 +6,7 @@ use Hexlet\Code\Controller\AddUrlsController;
 use Hexlet\Code\Controller\CheckUrlsController;
 use Hexlet\Code\Controller\HomeController;
 use Hexlet\Code\Controller\ListUrlsController;
-use Hexlet\Code\Controller\ShowUrlsController;
+use Hexlet\Code\Controller\ShowUrlController;
 use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 use Slim\Interfaces\RouteCollectorInterface;
@@ -21,9 +21,13 @@ $dotenv->safeLoad();
 
 Validator::lang('ru');
 
-$container = (new ContainerBuilder())
-    ->addDefinitions(__DIR__ . '/../config/container.php')
-    ->build();
+try {
+    $container = (new ContainerBuilder())
+        ->addDefinitions(__DIR__ . '/../config/container.php')
+        ->build();
+} catch (Exception $e) {
+    //
+}
 
 $app = AppFactory::createFromContainer($container);
 $app->add(TwigMiddleware::createFromContainer($app, Twig::class));
@@ -40,7 +44,7 @@ $container->set(RouteCollectorInterface::class, fn() => $app->getRouteCollector(
 
 $app->get('/', HomeController::class)->setName('home');
 $app->post('/urls', AddUrlsController::class)->setName('addUrl');
-$app->get('/urls/{id}', ShowUrlsController::class)->setName('url');
+$app->get('/urls/{id}', ShowUrlController::class)->setName('url');
 $app->get('/urls', ListUrlsController::class)->setName('urls');
 $app->post('/urls/{id}/checks', CheckUrlsController::class)->setName('checkUrl');
 
