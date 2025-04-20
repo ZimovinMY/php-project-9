@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hexlet\Code\Controller;
 
+use DateTimeZone;
 use Hexlet\Code\Exception\UrlNotFoundException;
 use Hexlet\Code\Repository\UrlCheckRepositoryInterface;
 use Hexlet\Code\Repository\UrlRepositoryInterface;
@@ -47,34 +48,44 @@ class CheckUrlsController
             $urlId = $args['id'];
             $url = $this->urlRepository->getOne($urlId);
 
-            $checkResult = $this->urlChecker->check($url['name']);
+            try {
+                $checkResult = $this->urlChecker->check($url['name']);
 
-            $check = $this->buildNewCheck($urlId, $checkResult);
+                $check = $this->buildNewCheck($urlId, $checkResult);
 
-            $this->urlCheckRepository->add($check);
+                $this->urlCheckRepository->add($check);
+
+                $this->flash->addMessage('success', 'Страница успешно проверена');
+            } catch (ConnectException) {
+                $this->flash->addMessage('error', 'Произошла ошибка при проверке, не удалось подключиться');
+            } catch (RequestException) {
+                $this->flash->addMessage('error', 'Произошла ошибка при проверке. Ошибка при выполнении запроса');
+            }
 
             return $response->withRedirect($this->routeCollector->getRouteParser()->urlFor('url', ['id' => $urlId]));
         } catch (UrlNotFoundException) {
             return $this->twig->render($response->withStatus(404), 'app/404.html.twig');
-        } catch (ConnectException) {
-            $this->flash->addMessage('error', 'Произошла ошибка при проверке, не удалось подключиться');
+        } catch (Exception $e) {
+            $this->flash->addMessageNow('error', $e->getMessage());
+            $data = ['flashes' => $this->flash->getMessages()];
 
-            return $response->withRedirect($this->routeCollector->getRouteParser()->urlFor('url', ['id' => $urlId]));
-        } catch (RequestException) {
-            $this->flash->addMessage('error', 'Произошла ошибка при проверке. Ошибка при выполнении запроса');
-
-            return $response->withRedirect($this->routeCollector->getRouteParser()->urlFor('url', ['id' => $urlId]));
-        } catch (Exception) {
-            return $this->twig->render($response->withStatus(500), 'app/500.html.twig');
+            return $this->twig->render($response->withStatus(500), 'app/500.html.twig', $data);
         }
     }
 
+    /**
+     * @throws Exception
+     */
     private function buildNewCheck(string $urlId, array $checkResult): array
     {
+        $timezone = new DateTimeZone('Europe/Moscow');
         return [
             'url_id'      => $urlId,
-            'created_at'  => (new DateTimeImmutable())->format('c'),
+            'created_at' => (new DateTimeImmutable('now', $timezone))->format('c'),
             'status_code' => $checkResult['status_code'],
+            'h1'          => mb_substr($checkResult['h1'] ?? '', 0, 255),
+            'title'       => mb_substr($checkResult['title'] ?? '', 0, 255),
+            'description' => mb_substr($checkResult['description'] ?? '', 0, 255),
         ];
     }
 }

@@ -10,17 +10,14 @@
                 <div class="flex-grow-1">
                     <input type="text" name="url[name]" value=""
                            class="form-control form-control-lg {% if errors.name %}is-invalid{% endif %}"
-                           placeholder="https://www.example.com" maxlength="255">
+                           placeholder="https://www.example.com">
                     {% if errors.name %}
                         <p class="invalid-feedback">{{ errors.name|first }}</p>
                     {% endif %}
                 </div>
 
                 <div class="col-lg-3 flex-grow-1">
-                    <button type="submit"
-                            class="btn btn-primary btn-lg px-5 text-uppercase ms-sm-3 mt-1 mt-sm-0 w-100 flex-grow-1">
-                        Проверить
-                    </button>
+                    <input type="submit" class="btn btn-primary btn-lg ms-3 px-5 text-uppercase mx-3" value="Проверить">
                 </div>
             </form>
         </div>

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Hexlet\Code\Controller;
 
+use DateTimeZone;
 use Hexlet\Code\Repository\UrlRepositoryInterface;
 use Hexlet\Code\Service\UrlNormalizer;
+use Hexlet\Code\Service\UrlValidator;
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Flash\Messages;
@@ -16,7 +18,6 @@ use Slim\Views\Twig;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use Valitron\Validator;
 
 class AddUrlsController
 {
@@ -25,7 +26,8 @@ class AddUrlsController
         private Messages $flash,
         private RouteCollectorInterface $routeCollector,
         private UrlRepositoryInterface $urlRepository,
-        private UrlNormalizer $urlNormalizer
+        private UrlNormalizer $urlNormalizer,
+        private UrlValidator $urlValidator
     ) {
     }
 
@@ -33,21 +35,17 @@ class AddUrlsController
      * @throws SyntaxError
      * @throws RuntimeError
      * @throws LoaderError
+     * @throws \Exception
      */
     public function __invoke(ServerRequest $request, Response $response): ResponseInterface
     {
         $url = $request->getParsedBodyParam('url');
         $url['name'] = $this->urlNormalizer->normalize($url['name']);
 
-        $validator = new Validator($url);
-        $validator->setPrependLabels(false);
-        $validator->rule('required', 'name');
-        $validator->rule('lengthMax', 'name', 255);
-        $validator->rule('url', 'name');
-
-        if ($validator->validate()) {
+        if ($this->urlValidator->validate($url)) {
             if (!$existingUrl = $this->urlRepository->findOneByName($url['name'])) {
-                $url['created_at'] = (new DateTimeImmutable())->format('c');
+                $timezone = new DateTimeZone('Europe/Moscow');
+                $url['created_at'] = (new DateTimeImmutable('now', $timezone))->format('c');
 
                 $id = $this->urlRepository->add($url);
 
@@ -65,7 +63,7 @@ class AddUrlsController
 
         $params = [
             'url'     => $url,
-            'errors'  => $validator->errors(),
+            'errors'  => $this->urlValidator->getErrors(),
             'flashes' => $this->flash->getMessages(),
         ];
 

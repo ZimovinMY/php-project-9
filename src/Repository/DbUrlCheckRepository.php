@@ -14,8 +14,8 @@ class DbUrlCheckRepository implements UrlCheckRepositoryInterface
 
     public function add(array $check): string
     {
-        $sql = 'INSERT INTO url_checks (url_id, status_code, created_at) 
-                VALUES(:url_id, :status_code, :created_at)';
+        $sql = 'INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) 
+                VALUES(:url_id, :status_code, :h1, :title, :description, :created_at)';
         $stmt = $this->pdoConnection->prepare($sql);
 
         foreach ($check as $key => $value) {

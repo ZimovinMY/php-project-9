@@ -16,7 +16,7 @@ class DbConnection
 
     public function connect(): PDO
     {
-        $databaseUrl = parse_url(getenv('DATABASE_URL'));
+        $databaseUrl = parse_url(getenv('DATABASE_URL') ? : '');
 
         $dsn = sprintf(
             "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
@@ -35,10 +35,10 @@ class DbConnection
 
     public static function get(): self
     {
-        if (!static::$conn) {
-            static::$conn = new self();
+        if (!self::$conn) {
+            self::$conn = new self();
         }
 
-        return static::$conn;
+        return self::$conn;
     }
 }
